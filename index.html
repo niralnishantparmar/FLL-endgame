@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Archaeology Archive</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"&gt;
+  <style>
+    .card-img-top {
+      height: 200px;
+      object-fit: cover;
+    }
+    body.dark-mode {
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+    .dark-mode .card {
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand ms-3" href="#">Archaeology Archive</a>
+    <button id="toggleTheme" class="btn btn-outline-light ms-auto me-3">Toggle Dark Mode</button>
+  </nav>
+
+  <div class="container mt-4">
+    <h1>Explore Ancient Discoveries</h1>
+
+    <!-- Search and Filter -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search artifacts...">
+      </div>
+      <div class="col-md-6">
+        <select id="categoryFilter" class="form-select">
+          <option value="">All Periods</option>
+          <option value="Bronze Age">Bronze Age</option>
+          <option value="Roman">Roman</option>
+          <option value="Egyptian">Egyptian</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Add Artifact Form -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5>Add Your Own Artifact</h5>
+        <form id="artifactForm">
+          <div class="row">
+            <div class="col-md-3"><input type="text" class="form-control mb-2" placeholder="Name" id="artifactName" required></div>
+            <div class="col-md-3"><input type="text" class="form-control mb-2" placeholder="Description" id="artifactDesc" required></div>
+            <div class="col-md-3"><input type="text" class="form-control mb-2" placeholder="Image URL" id="artifactImg" required></div>
+            <div class="col-md-3">
+              <select class="form-select mb-2" id="artifactPeriod" required>
+                <option value="">Select Period</option>
+                <option value="Bronze Age">Bronze Age</option>
+                <option value="Roman">Roman</option>
+                <option value="Egyptian">Egyptian</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success">Add Artifact</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Artifact Gallery -->
+    <div class="row" id="artifactContainer"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script&gt;
+  <script>
+    const artifacts = [
+      {
+        name: "Bronze Age Axe",
+        description: "Discovered in Anatolia, dated to 2500 BCE.",
+        image: "https://via.placeholder.com/300x200?text=Bronze+Age+Axe&quot;,
+        period: "Bronze Age"
+      },
+      {
+        name: "Roman Coin",
+        description: "Found in Gaul, minted during Emperor Augustus' reign.",
+        image: "https://via.placeholder.com/300x200?text=Roman+Coin&quot;,
+        period: "Roman"
+      },
+      {
+        name: "Egyptian Amulet",
+        description: "Unearthed near Luxor, used for protection in the afterlife.",
+        image: "https://via.placeholder.com/300x200?text=Egyptian+Amulet&quot;,
+        period: "Egyptian"
+      }
+    ];
+
+    const container = document.getElementById('artifactContainer');
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const toggleTheme = document.getElementById('toggleTheme');
+    const form = document.getElementById('artifactForm');
+
+    function renderArtifacts() {
+      const search = searchInput.value.toLowerCase();
+      const category = categoryFilter.value;
+      container.innerHTML = "";
+
+      const filtered = artifacts.filter(a =>
+        (a.name.toLowerCase().includes(search) || a.description.toLowerCase().includes(search)) &&
+        (category === "" || a.period === category)
+      );
+
+      filtered.forEach(artifact => {
+        const card = document.createElement('div');
+        card.className = 'col-md-4 mb-4';
+        card.innerHTML = `
+          <div class="card h-100">
+            <img src="${artifact.image}" class="card-img-top" alt="${artifact.name}">
+            <div class="card-body">
+              <h5 class="card-title">${artifact.name}</h5>
+              <p class="card-text">${artifact.description}</p>
+              <span class="badge bg-secondary">${artifact.period}</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newArtifact = {
+        name: document.getElementById('artifactName').value,
+        description: document.getElementById('artifactDesc').value,
+        image: document.getElementById('artifactImg').value,
+        period: document.getElementById('artifactPeriod').value
+      };
+
+      // Compare to existing artifacts
+      const newWords = (newArtifact.name + " " + newArtifact.description).toLowerCase().split(/\W+/);
+      const similarityScores = artifacts.map(existing => {
+        const existingWords = (existing.name + " " + existing.description).toLowerCase().split(/\W+/);
+        const shared = newWords.filter(word => existingWords.includes(word));
+        return { artifact: existing, score: shared.length };
+      });
+
+      similarityScores.sort((a, b) => b.score - a.score);
+      const closest = similarityScores[0];
+
+      artifacts.push(newArtifact);
+      form.reset();
+      renderArtifacts();
+
+      if (closest && closest.score > 0) {
+        alert(`🧭 This is most similar to: ${closest.artifact.name} – ${closest.artifact.description}`);
+      } else {
+        alert("🧭 No close match found among existing artifacts.");
+      }
+    });
+
+    searchInput.addEventListener('input', renderArtifacts);
+    categoryFilter.addEventListener('change', renderArtifacts);
+    toggleTheme.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    renderArtifacts();
+  </script>
+</body>
+</html>
